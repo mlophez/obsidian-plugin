@@ -1,0 +1,4 @@
+/* Hide close buttons */
+.titlebar-button-container.mod-right {
+    display: none;
+}
