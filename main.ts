@@ -2,12 +2,13 @@ import {
 	MarkdownPostProcessor,
 	Plugin,
 	TFile,
-	MarkdownPostProcessorContext
+	MarkdownPostProcessorContext,
+    MarkdownView
 } from 'obsidian';
 import { join } from 'path'
 
 export default class MyPlugin extends Plugin {
-	async onload() {
+	public async onload() {
 		this.addCommand({
 			id: 'format-files',
 			name: 'Format Files',
@@ -20,14 +21,22 @@ export default class MyPlugin extends Plugin {
 
 		/* FILE EVENTS */
 		this.registerEvent(this.app.vault.on("create", (file: TFile) =>{
-			console.log('Event: create');
-			console.log(file);
 			this.fileFormat(file);
 		}));
 
 		this.registerEvent(this.app.vault.on("rename", (file: TFile) => {
 			this.fileFormat(file);
 		}));
+
+        /* FILE OPEN IN PREVIEW MODE */
+        this.registerEvent(this.app.workspace.on("file-open", () => {
+		    const leaf = this.app.workspace.activeLeaf;
+		    if(!(leaf.view instanceof MarkdownView)) return;
+		    
+		    const state = leaf.view.getState();
+		    state.mode = "preview";
+		    leaf.setViewState({type: leaf.view.getViewType(), state: state})
+        }))
 
         /* MarkdownPostProcessor */
 		let linkProcessor : MarkdownPostProcessor = async (el: HTMLElement, ctx: MarkdownPostProcessorContext) => {
@@ -39,25 +48,25 @@ export default class MyPlugin extends Plugin {
 		linkProcessor.sortOrder = -100;
 		this.registerMarkdownPostProcessor(linkProcessor);
 
-		this.registerInterval(window.setInterval(() => {
-			this.app.workspace.containerEl.findAll('div[data-path]').forEach((e) => {
-				let path = e.getAttr('data-path')
-				let file = this.app.vault.getAbstractFileByPath(path) as TFile
-				if (path == '/') return
+		//this.registerInterval(window.setInterval(() => {
+		//	this.app.workspace.containerEl.findAll('div[data-path]').forEach((e) => {
+		//		let path = e.getAttr('data-path')
+		//		let file = this.app.vault.getAbstractFileByPath(path) as TFile
+		//		if (path == '/') return
 
-				let name = this.unnamed(path.split('/').reverse()[0])
-				if (e.find('div.nav-file-title-content') && !e.find('div.is-being-renamed') ) {
-					e.find('div.nav-file-title-content').innerText = name;
-				} 
+		//		let name = this.unnamed(path.split('/').reverse()[0])
+		//		if (e.find('div.nav-file-title-content') && !e.find('div.is-being-renamed') ) {
+		//			e.find('div.nav-file-title-content').innerText = name;
+		//		} 
 
-				if (e.find('div.nav-folder-title-content') && !e.find('div.is-being-renamed') ) {
-					e.find('div.nav-folder-title-content').innerText = name;
-				}
+		//		if (e.find('div.nav-folder-title-content') && !e.find('div.is-being-renamed') ) {
+		//			e.find('div.nav-folder-title-content').innerText = name;
+		//		}
 
-				if ( file.basename != name)
-					file.basename = name;
-			})
-		}, 500));
+		//		//if ( file.basename != name)
+		//		//	file.basename = name;
+		//	})
+		//}, 500));
 	}
 
 	onunload() {}
@@ -82,13 +91,13 @@ export default class MyPlugin extends Plugin {
 	async fileFormat(file : TFile) {
 		let name
 
-		if (file.extension == 'md') {
+		if (file.extension != null) {
 			name = file.basename.toLowerCase()
 			.replace(/--*/g, '-')
 			.replace(/ /g, '-');
 
 			if (name != file.basename)
-				this.app.fileManager.renameFile(file, join(file.parent.path, name + '.md') );
+				this.app.fileManager.renameFile(file, join(file.parent.path, name + '.' + file.extension) );
 		}
 
 		if (file.extension == null) {
