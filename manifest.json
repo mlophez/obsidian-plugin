@@ -1,10 +1,10 @@
 {
-	"id": "obsidian-plugin",
-	"name": "Custom Plugin",
-	"version": "1.0.1",
-	"minAppVersion": "0.9.12",
-	"description": "This is my custom plugin",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md/about",
-	"isDesktopOnly": false
+  "id": "obsidian-formatter",
+  "name": "Formatter",
+  "version": "1.0.0",
+  "minAppVersion": "0.9.12",
+  "description": "This is my custom plugin for formatter my vault",
+  "author": "Miguel López Ruiz",
+  "authorUrl": "https://obsidian.md/about",
+  "isDesktopOnly": false
 }
